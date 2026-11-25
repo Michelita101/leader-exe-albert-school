@@ -42,17 +42,35 @@ if len(st.session_state.answers)<len(QUESTIONS):
   del st.session_state.answers[i-1];st.rerun()
 else:
  scores={p:list(st.session_state.answers.values()).count(p) for p in PROFILES}
- ranking=sorted(PROFILES,key=lambda p:(-scores[p],list(PROFILES).index(p)))
- top=scores[ranking[0]]; leaders=[p for p in ranking if scores[p]==top]
+ top=max(scores.values())
+ leaders=[p for p in PROFILES if scores[p]==top]
  st.success('Quiz terminé !')
- if len(leaders)>1:st.write('**Plusieurs tendances arrivent à égalité :** ce n’est pas un problème, ton style n’est pas une case !')
- p=ranking[0];title,academic,strength,risk,challenge=PROFILES[p]
- st.header(title);st.caption(f'Approche associée : {academic}')
- st.write('**Ton atout :** '+strength);st.write('**Ton point de vigilance :** '+risk);st.write('**Ton défi :** '+challenge)
+ if len(leaders)==1:
+  p=leaders[0]
+  title,academic,strength,risk,challenge=PROFILES[p]
+  st.header(title)
+  st.caption(f'Approche associée : {academic} · {top} réponse(s) sur 12')
+  st.write('**Ton atout :** '+strength)
+  st.write('**Ton point de vigilance :** '+risk)
+  st.write('**Ton défi :** '+challenge)
+ else:
+  st.header('🌈 Un profil pluriel !')
+  st.write(f'**{len(leaders)} tendances arrivent ex æquo en tête ({top} réponse(s) chacune).** Aucune n’est privilégiée arbitrairement.')
+  for p in leaders:
+   title,academic,strength,risk,challenge=PROFILES[p]
+   st.markdown(f'### {title}')
+   st.caption(f'Approche associée : {academic}')
+   st.write('**Ton atout :** '+strength)
+   st.write('**Ton point de vigilance :** '+risk)
+   st.write('**Ton défi :** '+challenge)
  st.subheader('Tes préférences dans ce questionnaire')
  import pandas as pd
  st.bar_chart(pd.DataFrame({'Réponses choisies':{PROFILES[k][1]:scores[k] for k in PROFILES}}),horizontal=True)
- if len(leaders)==1:st.write('**Ta deuxième tendance :** '+PROFILES[ranking[1]][0])
+ if len(leaders)==1:
+  second=max((score for key,score in scores.items() if key!=leaders[0]),default=0)
+  seconds=[key for key in PROFILES if key!=leaders[0] and scores[key]==second]
+  st.write('**Ta deuxième tendance :** '+', '.join(PROFILES[key][0] for key in seconds))
+ st.info('Ces résultats reflètent tes choix dans ce quiz, pas une personnalité figée. Un leader efficace sait mobiliser plusieurs approches.')
  st.caption('Les scores représentent le nombre de choix associés à chaque approche sur 12 situations. Ils ne mesurent ni ta compétence ni ton potentiel.')
  st.markdown('### Question pour le débrief')
  st.write('Dans quelle situation ta préférence spontanée pourrait-elle devenir un frein ? Quel autre comportement pourrais-tu essayer ?')
